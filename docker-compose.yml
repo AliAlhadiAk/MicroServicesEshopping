@@ -16,6 +16,7 @@ services:
       - "5000:8080"  # Adjust this if your application uses a different port inside the container
     networks:
       - app-network
+
   yarpapigateway:
     image: ${DOCKER_REGISTRY-}yarpapigateway
     build:
@@ -29,13 +30,52 @@ services:
     networks:
       - app-network
 
+  identityservice:
+    image: ${DOCKER_REGISTRY-}identityservice
+    build:
+      context: ./IdentityService
+      dockerfile: Dockerfile
+    depends_on:
+      - postgres
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - POSTGRES_URL=postgres://user:password@postgres:5432/identitydb
+    ports:
+      - "8082:80"  # Adjust this if your application uses a different port inside the container
+    networks:
+      - app-network
+
+  mygrpcservice:
+    image: ${DOCKER_REGISTRY-}mygrpcservice
+    build:
+      context: ./MyGrpcService
+      dockerfile: Dockerfile
+    depends_on:
+      - sqlserver
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - SQLSERVER_CONNECTIONSTRING=Server=sqlserver;Database=MyDatabase;User=sa;Password=YourPassword!
+    ports:
+      - "5001:5000"  # Exposes port 5000 from the container to port 5001 on the host (adjust as needed)
+    networks:
+      - app-network
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: sqlserver
+    environment:
+      SA_PASSWORD: "YourPassword!"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+    networks:
+      - app-network
 
   mongodb:
     image: mongo:latest
     container_name: mongodb
     ports:
       - "27017:27017"
- 
     networks:
       - app-network
 
@@ -46,8 +86,6 @@ services:
       - "6379:6379"
     networks:
       - app-network
-
-
 
 networks:
   app-network:
