@@ -1,0 +1,54 @@
+version: '3.4'
+
+services:
+  microserviceseshopping:
+    image: ${DOCKER_REGISTRY-}microserviceseshopping
+    build:
+      context: .
+      dockerfile: MicroServicesEshopping/Dockerfile
+    depends_on:
+      - mongodb
+      - redis
+    environment:
+      - MONGO_URL=mongodb://mongodb:27017/BooksDb
+      - REDIS_URL=redis://redis:6379  # Add this environment variable for Redis
+    ports:
+      - "5000:8080"  # Adjust this if your application uses a different port inside the container
+    networks:
+      - app-network
+  yarpapigateway:
+    image: ${DOCKER_REGISTRY-}yarpapigateway
+    build:
+      context: ./YarpApiGateway
+      dockerfile: Dockerfile
+    depends_on:
+     - microserviceseshopping
+    ports:
+     - 8083:8080
+     - 8081:8081
+    networks:
+      - app-network
+
+
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+ 
+    networks:
+      - app-network
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+
+
+
+networks:
+  app-network:
+    driver: bridge
