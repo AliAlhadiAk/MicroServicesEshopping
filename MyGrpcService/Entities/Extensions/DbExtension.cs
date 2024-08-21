@@ -47,10 +47,10 @@ public static class DbExtension
                                                 Amount INT)";
         cmd.ExecuteNonQuery();
         
-        cmd.CommandText = "INSERT INTO Coupon(ProductName, Description, Amount) VALUES('Adidas Quick Force Indoor Badminton Shoes', 'Shoe Discount', 500);";
+        cmd.CommandText = "INSERT INTO Coupon(ProductName, Description, Amount) VALUES('Lessons from History', 'Book Discount', 59);";
         cmd.ExecuteNonQuery();
 
-        cmd.CommandText = "INSERT INTO Coupon(ProductName, Description, Amount) VALUES('Yonex VCORE Pro 100 A Tennis Racquet (270gm, Strung)', 'Racquet Discount', 700);";
+        cmd.CommandText = "INSERT INTO Coupon(ProductName, Description, Amount) VALUES('Over the clouds ', 'New offer !!!', 37);";
         cmd.ExecuteNonQuery();
     }
 }
