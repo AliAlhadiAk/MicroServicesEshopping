@@ -37,12 +37,11 @@ services:
     build:
       context: ./IdentityService
       dockerfile: Dockerfile
-  
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - POSTGRES_URL=postgres://user:password@postgres:5432/identitydb
     ports:
-      - "8082:8080"  # Adjust this if your application uses a different port inside the container
+      - "8082:8080"
     networks:
       - app-network
 
@@ -57,7 +56,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - SQLSERVER_CONNECTIONSTRING=Server=sqlserver;Database=MyDatabase;User=sa;Password=YourPassword!
     ports:
-      - "5001:5000"  
+      - "5001:5000"
     networks:
       - app-network
 
@@ -100,6 +99,34 @@ services:
     networks:
       - app-network
 
+  basket:
+    image: ${DOCKER_REGISTRY-}basket
+    build:
+      context: ./BasketService
+      dockerfile: Dockerfile
+    depends_on:
+      - redis
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - REDIS_URL=redis://redis:6379
+    ports:
+      - "5002:5000"
+    networks:
+      - app-network
+
+  sqlite:
+    image: nouchka/sqlite:latest
+    container_name: sqlite
+    environment:
+      - SQLITE_DB_PATH=/data/mydatabase.db
+    volumes:
+      - sqlite_data:/data
+    networks:
+      - app-network
+
 networks:
   app-network:
     driver: bridge
+
+volumes:
+  sqlite_data:
