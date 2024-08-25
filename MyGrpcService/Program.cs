@@ -17,6 +17,28 @@ builder.Services.AddGrpc();
             {
                 webBuilder.UseStartup<Startup>();
             }).UseSerilog(Logging.ConfigureLogger);
+
+             services.AddMassTransit(x =>
+                {
+                    x.AddConsumer<DiscountNotificationConsumer>();
+
+                    x.UsingRabbitMq((context, cfg) =>
+                    {
+                        cfg.Host(context.Configuration["RabbitMQ:HostName"], h =>
+                        {
+                            h.Username(context.Configuration["RabbitMQ:UserName"]);
+                            h.Password(context.Configuration["RabbitMQ:Password"]);
+                        });
+
+                        cfg.ReceiveEndpoint("discount_queue", e =>
+                        {
+                            e.ConfigureConsumer<DiscountNotificationConsumer>(context);
+                        });
+                    });
+                });
+
+                services.AddMassTransitHostedService();
+                builder.services.AddScoped<IDiscountPublisher,DiscountPublisher>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

@@ -9,9 +9,11 @@ services:
     depends_on:
       - mongodb
       - redis
+      - rabbitmq
     environment:
       - MONGO_URL=mongodb://mongodb:27017/BooksDb
       - REDIS_URL=redis://redis:6379  
+      - RABBITMQ_URL=amqp://rabbitmq:5672
     ports:
       - "5000:8080" 
     networks:
@@ -23,10 +25,10 @@ services:
       context: ./YarpApiGateway
       dockerfile: Dockerfile
     depends_on:
-     - microserviceseshopping
+      - microserviceseshopping
     ports:
-     - 8083:8080
-     - 8081:8081
+      - 8083:8080
+      - 8081:8081
     networks:
       - app-network
 
@@ -35,13 +37,12 @@ services:
     build:
       context: ./IdentityService
       dockerfile: Dockerfile
-    depends_on:
-      - postgres
+  
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - POSTGRES_URL=postgres://user:password@postgres:5432/identitydb
     ports:
-      - "8082:80"  # Adjust this if your application uses a different port inside the container
+      - "8082:8080"  # Adjust this if your application uses a different port inside the container
     networks:
       - app-network
 
@@ -84,6 +85,18 @@ services:
     container_name: redis
     ports:
       - "6379:6379"
+    networks:
+      - app-network
+
+  rabbitmq:
+    image: rabbitmq:management
+    container_name: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
+    ports:
+      - "5672:5672"  
+      - "15672:15672"
     networks:
       - app-network
 

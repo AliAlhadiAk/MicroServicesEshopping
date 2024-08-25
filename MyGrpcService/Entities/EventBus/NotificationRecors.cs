@@ -1,0 +1,1 @@
+public record Notification(string productName,object Discount);
