@@ -31,17 +31,41 @@ namespace IdentityService.Services.Repos
         }
         public Task<bool> ConfirmEmailAsync()
         {
-            throw new NotImplementedException();
+            
+             var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+              return false;
+            }
+
+              var result = await _userManager.ConfirmEmailAsync(user, code);
+               return result.Succeeded;
         }
 
         public Task<bool> ForgotPass(string Email)
         {
-            throw new NotImplementedException();
+            public async Task<bool> ForgotPass(string email)
+{
+    var user = await _userManager.FindByEmailAsync(email);
+    if (user == null)
+    {
+        return false; // User does not exist
+    }
+
+    var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+    var resetLink = $"https://alialhadiak.com/reset-password?token={token}";
+
+    var emailSent = await _emailService.SendEmailAsync(email, "Password Reset", $"Click the following link to reset your password: {resetLink}");
+    return emailSent;
+}
+
         }
 
         public string GenerateToken(List<Claim> claims)
         {
+            
             throw new NotImplementedException();
+            
         }
 
         public Task<bool> LoginAsync()
@@ -105,12 +129,33 @@ namespace IdentityService.Services.Repos
 
         public Task<bool> ResetPass(ResetPassDTO dto)
         {
-            throw new NotImplementedException();
+               var user = await _userManager.FindByEmailAsync(dto.Email);
+    if (user == null)
+    {
+        return false; // User does not exist
+    }
+
+    var result = await _userManager.ResetPasswordAsync(user, dto.Token, dto.NewPassword);
+    return result.Succeeded;
         }
 
         public Task<bool> SeedRoles()
         {
-            throw new NotImplementedException();
+            var roles = new[] { UserROLES.Admin, UserROLES.User };
+
+    foreach (var role in roles)
+    {
+        var exists = await _roleManager.RoleExistsAsync(role);
+        if (!exists)
+        {
+            var result = await _roleManager.CreateAsync(new IdentityRole(role));
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                Console.WriteLine($"Role creation failed: {errors}");
+                return false;
+            }
+        }
         }
     }
 }

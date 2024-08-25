@@ -1,33 +1,83 @@
+using System.Net;
+using Basket.Application.Commands;
+using Basket.Application.Mappers;
+using Basket.Application.Queries;
+using Basket.Application.Responses;
+using Basket.Core.Entities;
+using Common.Logging.Correlation;
+using EventBus.Messages.Events;
+using MassTransit;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BasketService.Controllers
+namespace Basket.API.Controllers;
+
+public class BasketController : ApiController
 {
-    [ApiController]
-    [Route("[controller]")]
-    public class BasketController : ControllerBase
+    private readonly IMediator _mediator;
+    private readonly IPublishEndpoint _publishEndpoint;
+    private readonly ILogger<BasketController> _logger;
+    private readonly ICorrelationIdGenerator _correlationIdGenerator;
+
+    public BasketController(IMediator mediator, IPublishEndpoint publishEndpoint, ILogger<BasketController> logger,
+        ICorrelationIdGenerator correlationIdGenerator)
     {
-        private static readonly string[] Summaries = new[]
-        {
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-        };
+        _mediator = mediator;
+        _publishEndpoint = publishEndpoint;
+        _logger = logger;
+        _correlationIdGenerator = correlationIdGenerator;
+        _logger.LogInformation("CorrelationId {correlationId}:", _correlationIdGenerator.Get());
+    }
+    
+    [HttpGet]
+    [Route("[action]/{userName}", Name = "GetBasketByUserName")]
+    [ProducesResponseType(typeof(ShoppingCartResponse), (int) HttpStatusCode.OK)]
+    public async Task<ActionResult<ShoppingCartResponse>> GetBasket(string userName)
+    {
+        var query = new GetBasketByUserNameQuery(userName);
+        var basket = await _mediator.Send(query);
+        return Ok(basket);
+    }
+    
+    [HttpPost("CreateBasket")]
+    [ProducesResponseType(typeof(ShoppingCartResponse), (int) HttpStatusCode.OK)]
+    public async Task<ActionResult<ShoppingCartResponse>> UpdateBasket([FromBody] CreateShoppingCartCommand createShoppingCartCommand)
+    {
+        
+        var basket = await _mediator.Send(createShoppingCartCommand);
+        return Ok(basket);
+    }
+    
+    [HttpDelete]
+    [Route("[action]/{userName}", Name = "DeleteBasketByUserName")]
+    [ProducesResponseType((int) HttpStatusCode.OK)]
+    public async Task<ActionResult<ShoppingCartResponse>> DeleteBasket(string userName)
+    {
+        var query = new DeleteBasketByUserNameQuery(userName);
+        return Ok(await _mediator.Send(query));
+    }
 
-        private readonly ILogger<BasketController> _logger;
-
-        public BasketController(ILogger<BasketController> logger)
+    [Route("[action]")]
+    [HttpPost]
+    [ProducesResponseType((int) HttpStatusCode.Accepted)]
+    [ProducesResponseType((int) HttpStatusCode.BadRequest)]
+    public async Task<IActionResult> Checkout([FromBody] BasketCheckout basketCheckout)
+    {
+        //Get existing basket with username
+        var query = new GetBasketByUserNameQuery(basketCheckout.UserName);
+        var basket = await _mediator.Send(query);
+        if (basket == null)
         {
-            _logger = logger;
+            return BadRequest();
         }
 
-        [HttpGet(Name = "GetWeatherForecast")]
-        public IEnumerable<WeatherForecast> Get()
-        {
-            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
-            {
-                Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                TemperatureC = Random.Shared.Next(-20, 55),
-                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-            })
-            .ToArray();
-        }
+        var eventMesg = BasketMapper.Mapper.Map<BasketCheckoutEvent>(basketCheckout);
+        eventMesg.TotalPrice = basket.TotalPrice;
+        eventMesg.CorrelationId = _correlationIdGenerator.Get();
+        await _publishEndpoint.Publish(eventMesg);
+        //remove the basket
+        var deleteQuery = new DeleteBasketByUserNameQuery(basketCheckout.UserName);
+        await _mediator.Send(deleteQuery);
+        return Accepted();
     }
 }
