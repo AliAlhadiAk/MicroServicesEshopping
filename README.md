@@ -1,19 +1,46 @@
+# Microservices Application
 
-Microservices Application
-Overview
-This repository contains a microservices application designed to demonstrate the use of various technologies and architectural patterns including Redis, SQL and NoSQL databases, CQRS, MediatR, and Jenkins for CI/CD. The application is structured to showcase how these components can be integrated to build a scalable and maintainable system.
+## Overview
 
-Architecture
-Components
-Microservices: The application is composed of multiple microservices, each responsible for a specific domain or functionality.
-Redis: Used as a distributed cache and for pub/sub messaging.
-SQL Database: Relational database used for structured data storage.
-NoSQL Database: Non-relational database used for unstructured data.
-CQRS: Command Query Responsibility Segregation pattern to separate read and write operations.
-MediatR: A library used to implement CQRS by handling commands and queries.
-Jenkins: Continuous Integration and Continuous Deployment (CI/CD) tool used to automate the build, test, and deployment processes.
-Redis: Redis Documentation
-SQL Database: SQL Server Documentation
-NoSQL Database: MongoDB Documentation
-CQRS and MediatR: MediatR Documentation
-Jenkins: Jenkins Documentation
+This repository contains a microservices-based application that integrates various technologies and architectural patterns including Redis, SQL and NoSQL databases, CQRS, MediatR, and Jenkins for CI/CD. It demonstrates a scalable and maintainable system using modern tools and practices.
+
+## Table of Contents
+
+- [Features](#features)
+- [Prerequisites](#prerequisites)
+- [Setup](#setup)
+  - [Local Development](#local-development)
+  - [Docker Setup](#docker-setup)
+- [Usage](#usage)
+  - [Endpoints](#endpoints)
+  - [Testing](#testing)
+- [Jenkins Integration](#jenkins-integration)
+- [Contributing](#contributing)
+- [License](#license)
+- [Acknowledgements](#acknowledgements)
+
+## Features
+
+- Microservices architecture
+- Integration with SQL and NoSQL databases
+- CQRS (Command Query Responsibility Segregation) pattern
+- MediatR for command and query handling
+- Docker for containerization
+- Jenkins for CI/CD
+
+## Prerequisites
+
+- [.NET 6.0](https://dotnet.microsoft.com/download/dotnet/6.0) or later
+- [Docker](https://www.docker.com/get-started)
+- [Docker Compose](https://docs.docker.com/compose/install/)
+- [Jenkins](https://www.jenkins.io/download/)
+
+## Setup
+
+### Local Development
+
+1. **Clone the Repository:**
+
+   ```bash
+   git clone https://github.com/your-repo/microservices-app.git
+   cd microservices-app
