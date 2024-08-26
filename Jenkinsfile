@@ -33,4 +33,10 @@ pipeline {
     }
 
   }
+      post {
+        always {
+            // Archive the test results so they can be viewed in Jenkins
+            junit '**/test_results.trx'
+        }
+    }
 }
