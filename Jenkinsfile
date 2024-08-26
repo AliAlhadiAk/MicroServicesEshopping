@@ -13,5 +13,24 @@ pipeline {
       }
     }
 
+    stage('Build & Test') {
+      parallel {
+        stage('Build & Test') {
+          steps {
+            sh '''sh \'dotnet build\'
+'''
+          }
+        }
+
+        stage('Test') {
+          steps {
+            sh '''sh \'dotnet test --logger "trx;LogFileName=test_results.trx"\'
+'''
+          }
+        }
+
+      }
+    }
+
   }
 }
