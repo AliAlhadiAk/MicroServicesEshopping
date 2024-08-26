@@ -1,41 +1,40 @@
 pipeline {
-  agent any
-  stages {
-    stage('Checkout Code') {
-      steps {
-        git(url: 'https://github.com/AliAlhadiAk/MicroServicesEshopping', branch: 'master')
-      }
-    }
+    agent any  // Run on any available agent
 
-    stage('Shell Script') {
-      steps {
-        sh 'ls -la'
-      }
-    }
-
-    stage('Build & Test') {
-      parallel {
-        stage('Build & Test') {
-          steps {
-            sh '''sh \'dotnet build\'
-'''
-          }
+    stages {
+        stage('Checkout Code') {
+            steps {
+                git(url: 'https://github.com/your/repo.git', branch: 'master')
+            }
         }
 
-        stage('Test') {
-          steps {
-            sh '''sh \'dotnet test --logger "trx;LogFileName=test_results.trx"\'
-'''
-          }
+        stage('Build and Run Services') {
+            steps {
+                script {
+                    sh 'docker-compose up -d --build'
+                }
+            }
         }
 
-      }
+        stage('Run Tests') {
+            steps {
+                script {
+                    sh 'docker-compose exec -T your_service_name dotnet test'
+                }
+            }
+        }
+
+        stage('Cleanup') {
+            steps {
+                script {
+                    sh 'docker-compose down'
+                }
+            }
+        }
     }
 
-  }
-      post {
+    post {
         always {
-
             junit '**/test_results.trx'
         }
     }
