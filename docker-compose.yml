@@ -27,8 +27,8 @@ services:
     depends_on:
       - microserviceseshopping
     ports:
-      - 8083:8080
-      - 8081:8081
+      - "8083:8080"
+      - "8081:8081"
     networks:
       - app-network
 
@@ -111,6 +111,21 @@ services:
       - REDIS_URL=redis://redis:6379
     ports:
       - "5002:5000"
+    networks:
+      - app-network
+
+  orderservice:
+    image: ${DOCKER_REGISTRY-}orderservice
+    build:
+      context: ./OrderService
+      dockerfile: Dockerfile
+    depends_on:
+      - sqlserver
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - SQLSERVER_CONNECTIONSTRING=Server=sqlserver;Database=OrderDatabase;User=sa;Password=YourPassword!
+    ports:
+      - "5003:5000"
     networks:
       - app-network
 
